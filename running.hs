@@ -323,17 +323,67 @@ phoneBookToMap' xs = Map.fromListWith (++) $ map (\(k,v) -> (k,[v])) xs
 -- Ch 8: Types
 -- See import Shapes directive above
 
+-- Some important typeclasses: 
+-- Eq (Equatable ==) -> Ord (Ordered GT, LT, EQ) -> Enum (Enumerable [..])
+-- Show
+-- Read
+-- Bounded
+-- Eq,Show -> Num 
+-- -- Also, Integral -> Int, Integer (Use fromIntegral to convert)
+-- Floating -> Float, Double
+
+-- Point has the same name for the data type and for the value constructor
+data Point = Point Float Float deriving (Show)
+
+data Shape = Circle Point Float
+           | Rectangle Point Point deriving (Show)
+
+-- Value constructors are functions that return a value of a data type. 
+-- In the above statement, `Rectangle Float Float Float Float` is a 
+-- value constructor. 
+
+surface :: Shape -> Float -- Note the Type declaration..
+-- Circle is not a type, but Shape is. 
+surface (Circle _ r) = pi * r ^ 2
+surface (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - y1)
+
+-- Value constructors are functions, so they can be partialed and mapped
+-- map (Circle (Point 10 20)) [4..7] 
+
 -- Record syntax
-data Person = Person { firstName :: String
-                     , lastName :: String
-                     , age :: Int
-                     , height :: Float
-                     , phoneNumber :: String
-                     , flavor :: String
-                     } deriving (Show)
+-- data Person = Person { firstName :: String
+--                      , lastName :: String
+--                      , age :: Int
+--                      , height :: Float
+--                      , phoneNumber :: String
+--                      , flavor :: String
+--                      } deriving (Show)
 
+-- Include Paamayim Nekudotayims as necessary! :D 
+
+-- 8.3 Type Parameters
+-- data Maybe a = Nothing | Just a
+-- Here `a` is a type parameter. Will have 
+-- `Maybe String` or `Maybe Int`, etc.
+-- Doing `:t Just "Haha"` returns `Just "Haha" :: Maybe [Char]`
+-- So type inference is used to figure out that the type parameter
+-- should be array of Char in abv.
+-- NB `:t Nothing` gives `Nothing :: Maybe a` which is polymorphic
+
+-- Use type parameters only when necessary! (See pg 91 lower)
+
+-- We could add typeclass constraints (like `(Int a) => ...`) 
+-- to the data declaration, but it is not recommended since these 
+-- constraints can be added to functions instead
+
+-- Now Vector is parametrized just like Maybe above
 data Vector a = Vector a a a deriving (Show)
+-- Note that this Vector definition is broad enough to use strings
+-- and chars even. 
+-- Also note that `Vector a` is the TYPE constructor and
+-- `Vector a a a` is the VALUE constructor
 
+-- However, typeclass constraints are added to numeric methods. 
 vplus :: (Num t) => Vector t -> Vector t -> Vector t
 (Vector i j k) `vplus` (Vector l m n) = Vector (i+l) (j+m) (k+n)
 
@@ -343,11 +393,109 @@ vectMult :: (Num t) => Vector t -> t -> Vector t
 scalarMult :: (Num t) => Vector t -> Vector t -> t
 (Vector i j k) `scalarMult` (Vector l m n) = (i*l) + (j*m) + (k*n)
 
+-- 8.4 Derived Instances
+-- Remb. Typeclasses 101, with Eq -> Int
 
+data Person = Person { firstName :: String
+                     , lastName  :: String
+                     , age       :: Int
+                     } deriving (Eq, Show, Read) 
+                     
+-- `deriving (Eq)` tests if value constructors match and if fields are equal (deep?).
 
+-- `data Bool = False | True deriving (Ord)` automatically assigns False LT True
+-- Enum requires nullary (no fields/parameters) value constructors. It is for 
+-- things that have successors and predecessors. 
+-- Bounded is for things that have highest and smallest possible values
 
+data Day = Monday | Tuesday | Wednesday | Thursday | Friday
+         | Saturday | Sunday deriving (Eq, Ord, Show, Read, Bounded, Enum)
 
+-- 8.5 Type Synonyms `[Char] == String`
+-- `type String = [Char]` ==> `type` KEYWORD. NOT used to define anything new, only
+-- to show a relationship between previously defined types
 
+type PhoneNumber = String
+type Name = String
+type PhoneBook = [(Name, PhoneNumber)]
 
+inPhoneBook :: Name -> PhoneNumber -> PhoneBook -> Bool
+inPhoneBook name pnumber pbook = (name, pnumber) `elem` pbook
+
+type IntMap v = Map.Map Int v
+
+-- High-school locker example
+
+data LockerState = Taken | Free deriving (Show, Eq)
+
+type Code = String
+type LockerMap = Map.Map Int (LockerState, Code)
+
+lockerLookup :: Int -> LockerMap -> Either String Code
+lockerLookup lockerNumber map = 
+    case Map.lookup lockerNumber map of 
+        Nothing            -> Left $ "Locker number " ++ show lockerNumber ++ " doesn't exist!"
+        Just (state, code) -> if state /= Taken
+                                then Right code
+                                else Left $ "Locker " ++ show lockerNumber ++ " is already taken!"
+
+-- Example of failure modes (Right Left using Either) 
+lockers :: LockerMap
+lockers = Map.fromList
+    [(100,(Taken,"ZD39I"))
+    ,(101,(Free,"JAH3I"))
+    ,(103,(Free,"IQSA9"))
+    ,(105,(Free,"QOTSA"))
+    ,(109,(Taken,"893JJ"))
+    ,(110,(Taken,"99292"))
+    ]
+
+-- 8.6 Recursive Data Structures
+
+-- data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)
+infixr 5 :-: -- Fixity declaration
+data List a = Empty | a :-: (List a) deriving (Show, Read, Eq, Ord)
+-- List could be empty, or a concatenation of a head element and tail list. 
+
+-- List addition
+infixr 5 .++
+(.++) :: List a -> List a -> List a
+Empty .++ y      = y
+(x :-: xs) .++ y = x :-: (xs .++ y)
+-- Pattern matching worked here because it tries to match constructors
+
+-- TREEES!!! TRESS!! xDDDD
+-- Binary Search Tree (not balanced)
+data Tree a = EmptyTree | Node a (Tree a) (Tree a) deriving (Show, Read, Eq)
+
+leftSubTree :: Tree a -> Tree a
+leftSubTree EmptyTree = EmptyTree
+leftSubTree (Node _ x _) = x
+
+rightSubTree :: Tree a -> Tree a
+rightSubTree EmptyTree = EmptyTree
+rightSubTree (Node _ _ x) = x
+
+-- Note how the (Ord a) type constraint is added to the function type declaration
+treeInsert :: (Ord a) => a -> Tree a -> Tree a
+treeInsert x EmptyTree = Node x EmptyTree EmptyTree
+treeInsert x (Node y lt rt) 
+    | x == y    = Node y lt rt
+    | x < y     = Node y (treeInsert x lt) rt
+    | x > y     = Node y lt (treeInsert x rt)
+
+-- Find element in tree
+treeElem :: (Ord a) => a -> Tree a -> Bool
+treeElem x EmptyTree = False
+treeElem x (Node y lt rt)
+    | x == y    = True
+    | x < y     = treeElem x lt
+    | x > y     = treeElem x rt
+
+-- Build tree from list
+listToTree :: (Ord a) => [a] -> Tree a
+listToTree = foldr treeInsert EmptyTree
+
+-- 8.7 Typeclasses 102
 
 

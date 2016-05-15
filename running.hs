@@ -5,10 +5,10 @@ import qualified Data.Function as DF
 import qualified Data.Char as DC
 import qualified Data.Map as Map
 import qualified Data.Set as Set
-import qualified Geometry.Sphere as Sphere -- My very own module! 
-import qualified Geometry.Cuboid as Cuboid -- My very own module! 
-import qualified Geometry.Cube as Cube -- My very own module! 
-import qualified Shapes -- My very own module! 
+import qualified Geometry.Sphere as Sphere -- My very own module!
+import qualified Geometry.Cuboid as Cuboid -- My very own module!
+import qualified Geometry.Cube as Cube -- My very own module!
+import qualified Shapes -- My very own module!
 
 doubleU x y = doubleMe x + doubleMe y
 
@@ -132,7 +132,7 @@ cylinder r h =
     let sideArea = 2 * pi * r * h
         topArea = pi * r ^ 2
     in sideArea + 2 * topArea
-    
+
 describeList :: [a] -> String
 describeList xs = "The list is " ++ case xs of [] -> "empty."
                                                [x] -> "a singleton list."
@@ -233,13 +233,13 @@ quicksort' (x:xs) = quicksort' lft ++ [x] ++ quicksort' rgt
 
 takeWhile' :: (a -> Bool) -> [a] -> [a]
 takeWhile' _ [] = []
-takeWhile' p (x:xs) 
+takeWhile' p (x:xs)
     | p x       = x : takeWhile' p xs
     | otherwise = []
 
 chain :: (Integral a) => a -> [a]
 chain 1 = [1]
-chain n 
+chain n
     | even n = n : chain (n `div` 2)
     | odd n  = n : chain (n*3 + 1  )
 
@@ -263,12 +263,12 @@ numUniques :: (Eq a) => [a] -> Int
 numUniques = length . nub
 
 search :: (Eq a) => [a] -> [a] -> Bool
-search needle haystack = 
+search needle haystack =
     let nlen = length needle
     in foldl (\acc x -> if take nlen x == needle then True else acc) False (tails haystack)
 
 encode :: Int -> String -> String
-encode shift msg = 
+encode shift msg =
     let ords = map DC.ord msg
         shifted = map (+ shift) ords
     in map DC.chr shifted
@@ -323,12 +323,12 @@ phoneBookToMap' xs = Map.fromListWith (++) $ map (\(k,v) -> (k,[v])) xs
 -- Ch 8: Types
 -- See import Shapes directive above
 
--- Some important typeclasses: 
+-- Some important typeclasses:
 -- Eq (Equatable ==) -> Ord (Ordered GT, LT, EQ) -> Enum (Enumerable [..])
 -- Show
 -- Read
 -- Bounded
--- Eq,Show -> Num 
+-- Eq,Show -> Num
 -- -- Also, Integral -> Int, Integer (Use fromIntegral to convert)
 -- Floating -> Float, Double
 
@@ -338,17 +338,17 @@ data Point = Point Float Float deriving (Show)
 data Shape = Circle Point Float
            | Rectangle Point Point deriving (Show)
 
--- Value constructors are functions that return a value of a data type. 
--- In the above statement, `Rectangle Float Float Float Float` is a 
--- value constructor. 
+-- Value constructors are functions that return a value of a data type.
+-- In the above statement, `Rectangle Float Float Float Float` is a
+-- value constructor.
 
 surface :: Shape -> Float -- Note the Type declaration..
--- Circle is not a type, but Shape is. 
+-- Circle is not a type, but Shape is.
 surface (Circle _ r) = pi * r ^ 2
 surface (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - y1)
 
 -- Value constructors are functions, so they can be partialed and mapped
--- map (Circle (Point 10 20)) [4..7] 
+-- map (Circle (Point 10 20)) [4..7]
 
 -- Record syntax
 -- data Person = Person { firstName :: String
@@ -359,11 +359,11 @@ surface (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - 
 --                      , flavor :: String
 --                      } deriving (Show)
 
--- Include Paamayim Nekudotayims as necessary! :D 
+-- Include Paamayim Nekudotayims as necessary! :D
 
 -- 8.3 Type Parameters
 -- data Maybe a = Nothing | Just a
--- Here `a` is a type parameter. Will have 
+-- Here `a` is a type parameter. Will have
 -- `Maybe String` or `Maybe Int`, etc.
 -- Doing `:t Just "Haha"` returns `Just "Haha" :: Maybe [Char]`
 -- So type inference is used to figure out that the type parameter
@@ -372,18 +372,18 @@ surface (Rectangle (Point x1 y1) (Point x2 y2)) = (abs $ x2 - x1) * (abs $ y2 - 
 
 -- Use type parameters only when necessary! (See pg 91 lower)
 
--- We could add typeclass constraints (like `(Int a) => ...`) 
--- to the data declaration, but it is not recommended since these 
+-- We could add typeclass constraints (like `(Int a) => ...`)
+-- to the data declaration, but it is not recommended since these
 -- constraints can be added to functions instead
 
 -- Now Vector is parametrized just like Maybe above
 data Vector a = Vector a a a deriving (Show)
 -- Note that this Vector definition is broad enough to use strings
--- and chars even. 
+-- and chars even.
 -- Also note that `Vector a` is the TYPE constructor and
 -- `Vector a a a` is the VALUE constructor
 
--- However, typeclass constraints are added to numeric methods. 
+-- However, typeclass constraints are added to numeric methods.
 vplus :: (Num t) => Vector t -> Vector t -> Vector t
 (Vector i j k) `vplus` (Vector l m n) = Vector (i+l) (j+m) (k+n)
 
@@ -399,13 +399,13 @@ scalarMult :: (Num t) => Vector t -> Vector t -> t
 data Person = Person { firstName :: String
                      , lastName  :: String
                      , age       :: Int
-                     } deriving (Eq, Show, Read) 
-                     
+                     } deriving (Eq, Show, Read)
+
 -- `deriving (Eq)` tests if value constructors match and if fields are equal (deep?).
 
 -- `data Bool = False | True deriving (Ord)` automatically assigns False LT True
--- Enum requires nullary (no fields/parameters) value constructors. It is for 
--- things that have successors and predecessors. 
+-- Enum requires nullary (no fields/parameters) value constructors. It is for
+-- things that have successors and predecessors.
 -- Bounded is for things that have highest and smallest possible values
 
 data Day = Monday | Tuesday | Wednesday | Thursday | Friday
@@ -432,14 +432,14 @@ type Code = String
 type LockerMap = Map.Map Int (LockerState, Code)
 
 lockerLookup :: Int -> LockerMap -> Either String Code
-lockerLookup lockerNumber map = 
-    case Map.lookup lockerNumber map of 
+lockerLookup lockerNumber map =
+    case Map.lookup lockerNumber map of
         Nothing            -> Left $ "Locker number " ++ show lockerNumber ++ " doesn't exist!"
         Just (state, code) -> if state /= Taken
                                 then Right code
                                 else Left $ "Locker " ++ show lockerNumber ++ " is already taken!"
 
--- Example of failure modes (Right Left using Either) 
+-- Example of failure modes (Right Left using Either)
 lockers :: LockerMap
 lockers = Map.fromList
     [(100,(Taken,"ZD39I"))
@@ -455,7 +455,7 @@ lockers = Map.fromList
 -- data List a = Empty | Cons a (List a) deriving (Show, Read, Eq, Ord)
 infixr 5 :-: -- Fixity declaration
 data List a = Empty | a :-: (List a) deriving (Show, Read, Eq, Ord)
--- List could be empty, or a concatenation of a head element and tail list. 
+-- List could be empty, or a concatenation of a head element and tail list.
 
 -- List addition
 infixr 5 .++
@@ -479,7 +479,7 @@ rightSubTree (Node _ _ x) = x
 -- Note how the (Ord a) type constraint is added to the function type declaration
 treeInsert :: (Ord a) => a -> Tree a -> Tree a
 treeInsert x EmptyTree = Node x EmptyTree EmptyTree
-treeInsert x (Node y lt rt) 
+treeInsert x (Node y lt rt)
     | x == y    = Node y lt rt
     | x < y     = Node y (treeInsert x lt) rt
     | x > y     = Node y lt (treeInsert x rt)
@@ -497,5 +497,88 @@ listToTree :: (Ord a) => [a] -> Tree a
 listToTree = foldr treeInsert EmptyTree
 
 -- 8.7 Typeclasses 102
+-- Typeclass definitions are basically defining interfaces.
+-- These interfaces need to be implemented by derived types.
+class Qeq a where
+    (=.=) :: a -> a -> Bool
+    (/.=) :: a -> a -> Bool
+    x =.= y = not (x /.= y) -- These lines are not necessary
+    x /.= y = not (x =.= y) -- to define the class
 
+-- New enumeration data type. Note the lack of the `deriving` keyword after it.
+data TrafficLight = Red | Yellow | Green
 
+-- Now we make TrafficLight an instance of Eq.
+-- The `instance` keyword makes types instances of typeclasses.
+instance Eq TrafficLight where
+    Red == Red = True
+    Green == Green = True
+    Yellow == Yellow = True
+    _ == _ = False
+-- Since (/=) is defined as not (==) in the Eq typeclass definition,
+-- we only have to write the implementation of (==) here.
+
+instance Show TrafficLight where
+    show Red = "Red Light"
+    show Yellow = "Yellow Light"
+    show Green = "Green Light"
+
+-- Example on Pg 108 of subclassing using class constraints for the Num typeclass.
+-- Use `:info <Typeclass/Fcn name>` to get info
+
+-- 8.8 A Yes-No Typeclass
+class YesNo a where
+    yesno :: a -> Bool
+
+instance YesNo Int where
+    yesno 0 = False
+    yesno _ = True
+
+instance YesNo [a] where
+    yesno [] = False
+    yesno _  = True
+
+instance YesNo Bool where
+    yesno = id -- id is the identity function :)
+
+instance (YesNo a) => YesNo (Maybe a) where
+    yesno Nothing = False
+    yesno (Just x) = yesno x
+
+instance YesNo (Tree a) where
+    yesno EmptyTree = False
+    yesno _         = True
+
+instance YesNo TrafficLight where
+    yesno Red = False
+    yesno _   = True
+
+yesnoIf :: (YesNo y) => y -> a -> a -> a
+yesnoIf yesnoVal yesResult noResult = if yesno yesnoVal then yesResult else noResult
+
+-- 8.9 The Functor typeclass
+-- class Functor f where
+--   fmap :: (a -> b) -> f a -> f b
+
+-- Deriving functor for Tree
+instance Functor Tree where
+  fmap f EmptyTree = EmptyTree
+  fmap f (Node a b c) = Node (f a) (fmap f b) (fmap f c)
+
+-- Either has already been defined as deriving Functor in Data.Either.
+-- instance Functor (Either a) where
+--  fmap f (Right a) = Right (f a)
+--  fmap f (Left a ) = Left  (f a)
+
+class Tofu t where
+  tofu :: j a -> t a j
+
+data Frank a b = Frank {frankField :: b a} deriving (Show)
+
+instance Tofu Frank where
+  tofu x = Frank x
+
+data Barry t k p = Barry {yabba :: p, dabba :: t k}
+
+instance Functor (Barry a b) where
+  fmap f (Barry{yabba=x, dabba=y}) = Barry{yabba=f x, dabba = y}
